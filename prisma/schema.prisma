@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  user_id   String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String
+  name      String
+  phone     Int
+  role_id   String?  @db.ObjectId
+  role      Role?    @relation(fields: [role_id], references: [role_id], onDelete: Cascade)
+  is_active Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Role {
+  role_id               String                  @id @default(auto()) @map("_id") @db.ObjectId
+  title                 String
+  description           String
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  Role_Resource_Mapping Role_Resource_Mapping[]
+  User                  User[]
+}
+
+enum resource_type {
+  API
+  WIDGET
+  MODULE
+}
+
+model Resource {
+  resource_id           String                  @id @default(auto()) @map("_id") @db.ObjectId
+  resource_type         resource_type
+  resource_name         String
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  Role_Resource_Mapping Role_Resource_Mapping[]
+}
+
+enum action {
+  READ
+  EDIT
+}
+
+model Role_Resource_Mapping {
+  role_resource_id String   @id @default(auto()) @map("_id") @db.ObjectId
+  roleId           String   @db.ObjectId
+  role             Role     @relation(fields: [roleId], references: [role_id], onDelete: Cascade)
+  resourceId       String   @db.ObjectId
+  resource         Resource @relation(fields: [resourceId], references: [resource_id], onDelete: Cascade)
+  permission       action
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
